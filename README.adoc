@@ -1,0 +1,61 @@
+= Leptos Plausible
+:toc:
+ifdef::env-github[]
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+This crate is an implementation of the https://plausible.io[Plausible] script for leptos.
+It aims to substitute the javascript to avoid getting it flagged by 
+`uBlock` and similar ad blockers.
+Additionally, it fixes the conflicts between the script and leptos `ActionForm`.
+
+[quote,About Plausible]
+____
+Plausible is intuitive, lightweight and open source web analytics. No cookies and fully compliant with GDPR, CCPA and PECR.
+____
+
+The library provides several components either as drop-in replacement or additionals: 
+
+* Pageviews.
+* Fire an event when a part of the page is loaded and in the viewport.
+* Track output link clicks with `leptos_router::A` replacement.
+* Do AB testing experiments on parts on your page and track the results footnote:[While we support it, custom effort with plausible data is needed to extract the statistics].
+* Track active elements and send an event when one starting with `data-id=plausible-...` is selected.
+* Send custom events, properties and revnue.
+
+TIP: Don't send and store PII using this library.
+
+
+WARNING: Currently the library is developed and tested with leptos `ssr` in mind, so has some extras not needed for `csr`. Eventually I'll support it.
+
+
+== [⚗️ Experimental] Obtain statistics from experiments
+
+Currently the plausible CSV export just provides unlinked information 
+about the custom properties and events.
+Thus, is not possible to see if a given experiment variant increased 
+conversion rate. 
+
+If you use Plausible Comunity Edition, you'll then have access to the 
+clickhouse DB directly,
+and we'll use it to compute the relevant statistics. 
+
+[source,bash]
+----
+docker compose exec plausible_events_db clickhouse-client
+----
+
+[source,sql]
+----
+:) \c plausible_events_db
+:) show tables;
+:) select * from events_v2 order by timestamp desc limit 10;
+:) select * from sessions_v2 order by timestamp desc limit 20;
+----
+
+
+
+== Credits
+
+The events part is mostly from https://github.com/goddtriffin/plausible-rs[plausible-rs] under MIT license, but since it uses several libraries that are not needed for leptos apps, I decided to just use and adapt the needed code. 
